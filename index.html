@@ -1,6 +1,110 @@
-<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>知养内容中台</title><link rel="stylesheet" href="styles.css"></head><body>
-<aside class="sidebar"><div class="brand"><b>知</b><span>知养 · 内容中台</span></div><p>AI CONTENT DESIGN STUDIO</p><nav><button class="nav active" data-page="studio">文案设计台</button><button class="nav" data-page="library">补充知识库</button><button class="nav" data-page="workflow">发布工作流</button></nav><div class="side-note"><b>设计原则</b><br>一条内容，一个人群，一个目的，一个动作。</div></aside>
-<main><header><div><em>PRIVATE DOMAIN · LAUNCH SYSTEM</em><h1 id="page-title">AI 文案设计台</h1></div><div class="status">● 先出稿，后审核，再发布</div></header>
-<section class="page active" id="studio"><div class="intro"><b>从策略开始，而不是从“写一段文案”开始。</b><span>依次选择产品、平台、人群、目的、时间阶段、篇幅和内容角度，获得匹配平台风格的内容成稿。</span></div><div class="layout"><section class="controls"><h2>01 / 内容策略</h2><label>选择产品<select id="product"></select></label><label>发布平台<select id="platform"></select></label><label>目标人群<select id="audience"></select></label><label>营销目的<select id="purpose"></select></label><label>发布阶段 / 时间节点<select id="stage"></select></label><label>篇幅选择<select id="length"></select></label><label>内容角度<select id="angle"></select></label><label>补充场景（可选）<textarea id="brief" placeholder="例如：周五晚聚餐、给父亲选礼物、第一次做7天打卡"></textarea></label><button id="generate">生成平台化文案 / 脚本</button></section><section class="results"><div class="results-head"><h2>02 / 生成结果</h2><span>先人工审核，再复制发布</span></div><div id="result"></div></section></div></section>
-<section class="page" id="library"><div class="intro"><b>知识库不是“越多越好”，而是每条都能追溯、能安全使用。</b><span>已纳入产品事实、权威食养科普、本草文化和平台内容方法。</span></div><div class="source-banner"><b>知识库边界：</b>补充的是内容科普与创作方法，不把外部资料自动转化为产品功效。涉及产品价格、食用方法、适宜/不适宜人群，只以最终审核包装为准。</div><div id="knowledge" class="knowledge-grid"></div></section>
-<section class="page" id="workflow"><div class="workflow"><h2>从内容到企微的工作流</h2><div class="flow"><div><b>1</b><span>选产品与人群</span></div><i>→</i><div><b>2</b><span>生成平台化初稿</span></div><i>→</i><div><b>3</b><span>人工合规审核</span></div><i>→</i><div><b>4</b><span>发布并引导“自查”</span></div><i>→</i><div><b>5</b><span>企微承接与记录</span></div></div><h3>每个平台的内容任务</h3><table><tr><th>视频号</th><td>真人口播、信任与完播</td><th>小红书</th><td>场景、清单、收藏</td></tr><tr><th>公众号</th><td>深度文章、资料沉淀</td><th>知乎</th><td>真实问题、长期搜索</td></tr><tr><th>微博</th><td>热点观点、互动扩散</td><th>企微</th><td>欢迎语、资料与跟进</td></tr></table><div class="audit big"><b>统一审核闸门</b><span>产品事实是否准确？</span><span>古籍是否只作文化引用？</span><span>是否符合该平台规则？</span><span>是否只有一个明确引流动作？</span></div></div></section></main><script src="app.js"></script></body></html>
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="知养内容中台：面向视频号、小红书、公众号、知乎、微博的合规内容创作工具。">
+  <title>知养内容中台</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <aside class="sidebar">
+    <div class="brand"><b>知</b><span>知养 · 内容中台</span></div>
+    <p>AI CONTENT DESIGN STUDIO</p>
+    <nav>
+      <button class="nav active" data-page="studio">文案设计台</button>
+      <button class="nav" data-page="library">证据知识库</button>
+      <button class="nav" data-page="workflow">发布工作流</button>
+    </nav>
+    <div class="side-note"><b>使用边界</b><br>平台生成的是“待审核成稿”。涉及产品、疾病、用药、检测值的内容，必须由负责人复核后发布。</div>
+  </aside>
+
+  <main>
+    <header>
+      <div><em>PRIVATE DOMAIN · CONTENT SYSTEM</em><h1 id="page-title">AI 文案设计台</h1></div>
+      <div class="status"><i></i> 先出稿，后审证据，再发布</div>
+    </header>
+
+    <section class="page active" id="studio">
+      <div class="intro">
+        <b>这次交付的是可直接审阅的完整正文，不是提纲。</b>
+        <span>系统会根据产品、平台、人群、目的、阶段、篇幅、主题和角度，自动切换标题、节奏、叙事、证据与转化动作；每次生成都会创建新的内容版本。</span>
+      </div>
+
+      <div class="layout">
+        <section class="controls panel">
+          <div class="section-kicker">01 / CREATIVE BRIEF</div>
+          <h2>内容策略</h2>
+          <label>选择产品<select id="product"></select></label>
+          <label>发布平台<select id="platform"></select></label>
+          <label>目标人群<select id="audience"></select></label>
+          <label>营销目的<select id="purpose"></select></label>
+          <label>发布阶段<select id="stage"></select></label>
+          <label>篇幅选择<select id="length"></select></label>
+          <label>内容主题<select id="topic"></select></label>
+          <label>内容角度<select id="angle"></select></label>
+          <label>补充场景（可选）
+            <textarea id="brief" maxlength="160" placeholder="例如：周五晚聚餐、给父亲选礼物、夏季甜饮、第一次做7天记录"></textarea>
+          </label>
+          <button id="generate">生成完整文案 / 视频脚本</button>
+          <p class="microcopy">不会自动发布；请先完成产品事实、引用和平台规则审核。</p>
+        </section>
+
+        <section class="results panel">
+          <div class="results-head">
+            <div><div class="section-kicker">02 / READY-TO-REVIEW</div><h2>生成结果</h2></div>
+            <span id="result-status">等待生成</span>
+          </div>
+          <div id="result" aria-live="polite"></div>
+        </section>
+      </div>
+    </section>
+
+    <section class="page" id="library">
+      <div class="intro">
+        <b>知识库按“产品事实、现代证据、古籍文化、法规边界、平台方法”分层。</b>
+        <span>古籍只负责文化叙事，不能证明现代产品功效；产品资料中的营销结论，未取得标签、专利全文或研究原文前不会进入可直接引用事实。</span>
+      </div>
+      <div class="source-banner"><b>当前规则：</b>所有卡片均标注“可以怎么用”和“不能怎么用”。外部资料用于科普选题与事实核验，不会自动转化为产品疗效。</div>
+      <div class="library-tools">
+        <input id="knowledge-search" type="search" placeholder="搜索书名、成分、平台或风险词">
+        <select id="knowledge-filter"></select>
+        <span id="knowledge-count"></span>
+      </div>
+      <div id="knowledge" class="knowledge-grid"></div>
+    </section>
+
+    <section class="page" id="workflow">
+      <div class="workflow panel">
+        <div class="section-kicker">PUBLISHING SOP</div>
+        <h2>从生成到发布的六道审核</h2>
+        <div class="flow">
+          <div><b>1</b><span>选题与人群</span></div><i>→</i>
+          <div><b>2</b><span>生成平台成稿</span></div><i>→</i>
+          <div><b>3</b><span>事实与出处核对</span></div><i>→</i>
+          <div><b>4</b><span>合规负责人审核</span></div><i>→</i>
+          <div><b>5</b><span>发布与评论承接</span></div><i>→</i>
+          <div><b>6</b><span>记录数据再迭代</span></div>
+        </div>
+        <h3>五个平台各自承担什么任务</h3>
+        <table>
+          <tr><th>视频号</th><td>真人口播、信任、完播</td><th>小红书</th><td>搜索场景、收藏、评论</td></tr>
+          <tr><th>公众号</th><td>深度解释、来源沉淀、承接</td><th>知乎</th><td>问题回答、长期搜索、专业边界</td></tr>
+          <tr><th>微博</th><td>鲜明观点、热点切口、互动扩散</td><th>企业微信</th><td>资料领取、问卷、自查与人工跟进</td></tr>
+        </table>
+        <div class="audit big">
+          <b>发布前必须全部通过</b>
+          <span>产品名称、类别、配料、规格是否与最终实物标签一致？</span>
+          <span>数字、指南、古籍是否能追到原文？</span>
+          <span>是否把普通食品写成治疗、预防或保健功能？</span>
+          <span>是否有绝对化承诺、焦虑恐吓或暗示停药？</span>
+          <span>是否符合该平台的商业内容和导流规则？</span>
+          <span>评论区回复是否也使用同一审核口径？</span>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
