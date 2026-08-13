@@ -5,7 +5,16 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="description" content="知养内容中台：面向视频号、小红书、公众号、知乎、微博的合规内容创作工具。">
   <title>知养内容中台</title>
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css?v=2">
+  <style>
+    .publish-card{border-color:#b9d4c8;box-shadow:0 7px 24px #0e696112}
+    .publish-card .draft-title{background:#eaf3ee}
+    .publish-card .draft-body{font-size:14px;line-height:2;color:#213438}
+    .review-details{margin-top:16px;border:1px solid var(--line);border-radius:10px;background:#f8faf8;padding:12px}
+    .review-details summary{cursor:pointer;color:var(--green);font-weight:800;padding:5px}
+    .review-details[open] summary{margin-bottom:12px}
+    .review-details .draft-card{background:#fff}
+  </style>
 </head>
 <body>
   <aside class="sidebar">
@@ -46,14 +55,14 @@
           <label>补充场景（可选）
             <textarea id="brief" maxlength="160" placeholder="例如：周五晚聚餐、给父亲选礼物、夏季甜饮、第一次做7天记录"></textarea>
           </label>
-          <button id="generate">生成完整文案 / 视频脚本</button>
+          <button id="generate">生成可直接发布成稿</button>
           <p class="microcopy">不会自动发布；请先完成产品事实、引用和平台规则审核。</p>
         </section>
 
         <section class="results panel">
           <div class="results-head">
             <div><div class="section-kicker">02 / READY-TO-REVIEW</div><h2>生成结果</h2></div>
-            <span id="result-status">等待生成</span>
+            <span id="result-status">等待生成可发布正文</span>
           </div>
           <div id="result" aria-live="polite"></div>
         </section>
@@ -105,6 +114,6 @@
     </section>
   </main>
 
-  <script src="app.js"></script>
+  <script src="app.js?v=2"></script>
 </body>
 </html>

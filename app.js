@@ -58,6 +58,7 @@ const PRODUCTS = {
     name: '舒零',
     category: '昆布柠檬酸泡腾片（以最终实物标签为准）',
     verified: '现有内部介绍资料列示：规格为2×12片，共24片/盒；资料列出鹅肌肽、益生菌、昆布多糖、柠檬酸钠、柠檬酸钾等成分。以上内容发布前仍需逐项对照最终实物标签、生产许可及检测资料。',
+    publicFacts: '根据产品现有标签资料，舒零为昆布柠檬酸泡腾片，规格为2×12片，共24片/盒；资料列出的配料包括鹅肌肽、益生菌、昆布多糖、柠檬酸钠和柠檬酸钾等。选择这类食品时，建议把食品类别、配料、食用方法和不适宜人群一起看完整。',
     service: '可把产品放在“日常记录与生活方式管理”的服务场景中介绍，只讲标签事实、使用方式与适用边界。',
     forbidden: '不得使用“稳定降酸、治疗痛风、溶晶、替代或减少药物、服用多久见效”等表述；不得用用户检测值或个案证明普遍效果。',
     ingredientNames: ['昆布', '柠檬酸盐', '鹅肌肽', '益生菌'],
@@ -67,6 +68,7 @@ const PRODUCTS = {
     name: '梦犇健',
     category: '人参牡蛎肽压片糖果（加强版）',
     verified: '现有包装图标示：净含量3.6g（6粒×0.6g），每日一粒、温开水口服；配料含人参粉（人工种植5年以下）、牡蛎肽粉、黄精粉、枸杞粉等。包装另列不适宜人群，发布前必须对照最终实物包装完整展示。',
+    publicFacts: '根据产品现有包装信息，梦犇健人参牡蛎肽压片糖果净含量为3.6克（6粒×0.6克），标示食用方法为每日一粒、温开水口服；配料包括人参粉（人工种植5年以下）、牡蛎肽粉、黄精粉和枸杞粉等。购买或赠送前，应同时查看包装列明的不适宜人群。',
     service: '可从成分文化、成熟男性的日常作息、礼赠选择和食品标签阅读切入，不对身体功能作效果暗示。',
     forbidden: '不得使用“补肾、壮阳、持久、当天见效、提高性能力、延年益寿、无效退款”等承诺；不得利用羞耻、伴侣压力或领导送礼诱导购买。',
     ingredientNames: ['人参', '牡蛎肽', '黄精', '枸杞', '覆盆子', '肉苁蓉'],
@@ -337,9 +339,9 @@ function seedControls() {
 
 function contextualProduct(ctx) {
   if (ctx.stageKey === 'cold') return '';
-  if (ctx.stageKey === 'warm') return `\n\n【品牌边界】\n知养的内容先服务于记录与理解，不急着把每个健康话题都变成产品推荐。涉及${ctx.product.name}时，我们只介绍经核验的食品类别、标签信息和使用边界。`;
-  if (ctx.stageKey === 'convert') return `\n\n【产品信息｜发布前再核标签】\n${ctx.product.name}的现有可用事实：${ctx.product.verified}\n\n${ctx.product.service}\n\n这是一款食品，不能代替药物或诊疗；涉及症状、检查结果和用药，应咨询医生。`;
-  return `\n\n【私域陪伴动作】\n如果已经进入知养的企微服务，本周不增加复杂任务：按四格表记录一次真实场景，由人工运营根据用户主动提供的信息做资料分发与回访。涉及${ctx.product.name}，只回答最终标签、食用方法、不适宜人群和售后信息；症状、检测、用药一律建议咨询医生。`;
+  if (ctx.stageKey === 'warm') return `\n\n知养更愿意先陪你看清真实生活，再谈产品选择。关于${ctx.product.name}，我们只依据包装和审核资料介绍食品类别、配料、食用方法与不适宜人群，不把一种食品说成解决所有问题的答案。`;
+  if (ctx.stageKey === 'convert') return `\n\n如果你正在了解${ctx.product.name}，先看清这些基础信息：${ctx.product.publicFacts}\n\n它是一款食品，不能代替药物或诊疗。涉及症状、检查结果和用药，请咨询医生。`;
+  return `\n\n已经加入知养企微服务的朋友，本周不用给自己增加复杂任务，只需按“时间—场景—选择—感受”记录一次真实经历。关于${ctx.product.name}，工作人员可以协助提供完整标签、食用方法、不适宜人群和售后信息；涉及症状、检测和用药，请咨询医生。`;
 }
 
 function classicInsert(ctx) {
@@ -347,7 +349,7 @@ function classicInsert(ctx) {
   const productLine = ctx.product.name === '梦犇健'
     ? `现有包装中的${pick(ctx.product.ingredientNames, ctx.random)}，可以作为查找历代本草条目的入口。`
     : `现有资料中的${pick(ctx.product.ingredientNames, ctx.random)}，可以作为本草与饮膳文化的选题入口。`;
-  return `\n\n【古今对照，不作疗效证明】\n《黄帝内经·素问·上古天真论》有“食饮有节，起居有常”之语。这里可借来说明：古人已经注意到饮食与起居的节律；现代内容仍应回到可执行的日常管理。${productLine}但古籍记载、食品原料身份、成品标签是三个层次，不能用前一个替后一个证明功效。直接引用《本草纲目》《食疗本草》《饮膳正要》等具体条目之前，还要核对版本、卷次与上下文。`;
+  return `\n\n古籍里的生活观，也能给今天一些朴素提醒。《黄帝内经·素问·上古天真论》说：“食饮有节，起居有常。”它谈的是饮食与起居的节律。${productLine}不过，古籍记载、现代食品原料和一款成品的标签信息是三个不同层次，古籍不能替现代产品证明功效。`;
 }
 
 function titleSet(ctx) {
@@ -390,46 +392,35 @@ function referencesFor(ctx) {
 }
 
 function sourceText(sources) {
-  return `资料来源（发布时建议保留）：\n${sources.map((source, index) => `${index + 1}. ${source.title}\n${source.url}`).join('\n')}`;
+  return `参考资料：\n${sources.map((source, index) => `${index + 1}. ${source.title}\n${source.url}`).join('\n')}`;
 }
 
 function videoDraft(ctx, titles, blocks, sourceLine) {
-  const duration = { short: 75, medium: 180, long: 300 }[ctx.lengthKey];
-  const finalStart = duration - 8;
-  const each = Math.max(12, Math.floor((finalStart - 4) / blocks.length));
-  let cursor = 4;
-  const shots = blocks.map((block, index) => {
-    const start = cursor;
-    cursor = Math.min(finalStart, cursor + each);
-    const visuals = ['工位与水杯近景', '手机群聊与外卖页面虚焦', '聚餐前整理衣服的动作', '手写四格记录表', '包装背标与配料表特写', '下班路上的生活镜头'];
-    const captions = ['先看见场景', '别一次改十件事', '记录事实，不给自己打分', '把决定提前做', '食品不是药品', '有症状先咨询医生'];
-    return `[${String(start).padStart(2, '0')}-${String(cursor).padStart(2, '0')}秒]\n画面：${visuals[index % visuals.length]}。\n口播：${block}\n大字字幕：${captions[index % captions.length]}`;
-  }).join('\n\n');
-  return `【发布标题备选】\n1. ${titles[0]}\n2. ${titles[1]}\n3. ${titles[2]}\n\n【封面大字】\n${titles[0].slice(0, 20)}\n\n【${duration}秒完整分镜口播】\n[00-04秒]\n画面：人物直视镜头，背景只保留一个真实生活场景。\n口播：${pick(HOOKS[ctx.topicKey], ctx.random)}\n大字字幕：先别急着靠“忍”\n\n${shots}\n\n[${finalStart}-${duration}秒]\n画面：镜头回到人物，手里拿空白记录表，不出现夸大产品特写。\n口播：${ctx.purpose.cta} 记住，涉及症状、检查结果或用药，请咨询医生，食品不能代替药物或诊疗。\n大字字幕：先记录，再调整\n\n【发布配文】\n${titles[1]}。这条不是让你一次做到满分，而是先找到最容易反复发生的真实场景。${ctx.purpose.cta}\n\n#生活方式记录 #饮食习惯 #知养\n\n${sourceLine}\n\n【拍摄执行】\n景别：开头近景，中段生活B-roll，结尾回到半身；每4-6秒切镜。\n字幕：每屏不超过16字，关键动词用品牌绿色；不要用疼痛表情、白大褂或检测值对比制造恐惧。`;
+  return `${titles[0]}\n\n很多人不是不知道该注意什么，而是每次到了加班、聚餐或疲惫的时刻，原来的计划就被惯性接管。真正值得先解决的，不是“够不够自律”，而是哪个场景最容易让选择失控。\n\n${blocks.join('\n\n')}${classicInsert(ctx)}${contextualProduct(ctx)}\n\n真正有用的改变，不是今天把目标喊得多狠，而是下一次遇到同样场景时，你已经知道先做哪一步。${ctx.purpose.cta}\n\n涉及症状、检查结果或用药，请咨询医生。食品不能代替药物或诊疗。\n\n#生活方式记录 #饮食习惯 #知养\n\n${sourceLine}`;
 }
 
 function pairedSections(blocks, headings) {
   const groups = [];
   for (let index = 0; index < blocks.length; index += 2) groups.push(blocks.slice(index, index + 2));
-  return groups.map((group, index) => `## ${headings[index] || `补充说明：第${index + 1}步`}\n\n${group.join('\n\n')}`).join('\n\n');
+  return groups.map((group, index) => `${headings[index] || `补充说明：第${index + 1}步`}\n\n${group.join('\n\n')}`).join('\n\n');
 }
 
 function xhsDraft(ctx, titles, blocks, sourceLine) {
   const emojiHeads = ['📌 先说结论', '🧾 我怎么记录', '⚠️ 最容易踩的坑', '✅ 今天就能做', '🌿 古今对照', '🔍 标签事实'];
   const body = blocks.map((block, index) => `${emojiHeads[index % emojiHeads.length]}\n${block}`).join('\n\n');
-  return `【标题备选｜发布时选1个】\n1. ${titles[0]}\n2. ${titles[1]}\n3. ${titles[2]}\n4. ${pick(HOOKS[ctx.topicKey], ctx.random)}\n5. ${ctx.audience.label}别划走：${ctx.topic.label}先做这一件事\n\n【封面文案】\n主标题：${titles[0].slice(0, 18)}\n副标题：不是狠一点，是看清一点\n\n【完整正文】\n先说一个可能不太讨喜的真相：懂得多，不等于到了真实场景就能做出来。${ctx.audience.life}，这时候最先接管选择的往往是惯性。\n\n${body}${classicInsert(ctx)}${contextualProduct(ctx)}\n\n最后留一个很具体的问题：你最容易偏离计划的时刻，是A下午犯困、B下班聚餐、C深夜外卖，还是D睡前刷手机？留言一个字母就好。\n\n${ctx.purpose.cta}\n\n说明：本文用于一般生活方式与食品信息科普，不构成诊断或治疗建议。涉及症状、检查、用药或特殊疾病状态，请咨询医生。\n\n#生活方式管理 #食品标签 #饮食记录 #7天自查 #知养\n\n${sourceLine}`;
+  return `${titles[0]}\n\n先说一个可能不太讨喜的真相：懂得多，不等于到了真实场景就能做出来。${ctx.audience.life}，这时候最先接管选择的往往是惯性。\n\n${body}${classicInsert(ctx)}${contextualProduct(ctx)}\n\n最后留一个很具体的问题：你最容易偏离计划的时刻，是A下午犯困、B下班聚餐、C深夜外卖，还是D睡前刷手机？留言一个字母就好。\n\n${ctx.purpose.cta}\n\n本文用于一般生活方式与食品信息科普，不构成诊断或治疗建议。涉及症状、检查、用药或特殊疾病状态，请咨询医生。\n\n#生活方式管理 #食品标签 #饮食记录 #7天自查 #知养\n\n${sourceLine}`;
 }
 
 function wechatDraft(ctx, titles, blocks, sourceLine) {
   const headings = ['一、真正难改的，往往不是知识', '二、把问题落到一个真实场景', '三、从今天开始怎么做', '四、别忽略适用条件', '五、证据应该怎样留下', '六、品牌能说什么、不能说什么', '七、古籍引用的正确位置', '八、把一次改变变成一周记录', '九、什么时候必须找医生'];
   const body = pairedSections(blocks, headings);
-  return `【标题备选】\n1. ${titles[0]}\n2. ${titles[1]}\n3. ${titles[2]}\n\n【摘要】\n很多人不是不知道该注意什么，而是不知道怎样把原则放进加班、聚餐、甜饮和熬夜这些真实场景。本文给出一套能记录、能复盘、不过度承诺的方法。\n\n【完整正文】\n# ${titles[0]}\n\n${pick(SCENES, ctx.random)}\n\n我们很容易把健康管理写成一张禁止清单。但对${ctx.audience.label}来说，真正的问题是：${ctx.audience.life}。如果方法不能进入这些细节，它就很难坚持。\n\n${body}${classicInsert(ctx)}${contextualProduct(ctx)}\n\n## 写在最后\n\n不要把一次偏离理解成失败，也不要因为一篇科普文章自行停药、换药或给自己下诊断。真正稳妥的顺序是：先记录真实生活，再依据可靠资料调整；遇到症状、检查异常和用药问题，及时咨询医生。\n\n${ctx.purpose.cta}\n\n本文为一般科普及传统文化阅读，不构成个体诊疗建议；产品信息以最终实物标签与审核资料为准。\n\n${sourceLine}`;
+  return `${titles[0]}\n\n很多人不是不知道该注意什么，而是不知道怎样把原则放进加班、聚餐、甜饮和熬夜这些真实场景。\n\n${pick(SCENES, ctx.random)}\n\n我们很容易把健康管理写成一张禁止清单。但对${ctx.audience.label}来说，真正的问题是：${ctx.audience.life}。如果方法不能进入这些细节，它就很难坚持。\n\n${body}${classicInsert(ctx)}${contextualProduct(ctx)}\n\n写在最后\n\n不要把一次偏离理解成失败，也不要因为一篇科普文章自行停药、换药或给自己下诊断。真正稳妥的顺序是：先记录真实生活，再依据可靠资料调整；遇到症状、检查异常和用药问题，及时咨询医生。\n\n${ctx.purpose.cta}\n\n本文为一般科普及传统文化阅读，不构成个体诊疗建议；产品信息以最终实物标签为准。\n\n${sourceLine}`;
 }
 
 function zhihuDraft(ctx, titles, blocks, sourceLine) {
   const headings = ['为什么只靠意志力通常不够？', '更可执行的方法是什么？', '怎样判断自己该先改哪一步？', '哪些适用条件不能省略？', '证据与出处应该怎样核？', '如果涉及产品，应该如何看信息？', '古籍引用能承担什么作用？', '怎么做一周复盘？', '什么时候不该继续看网络内容？'];
-  const body = pairedSections(blocks, headings).replaceAll('## ', '### ');
-  return `【问题标题】\n${titles[0]}\n\n【完整回答】\n先说结论：${ctx.topic.label}不适合用“一次全部改掉”作为长期策略。更现实的做法是识别高频场景、记录一周，再选择一个成本最低的动作测试。公开科普只能提供一般原则；涉及症状、检查或用药，应该由医生判断。\n\n${body}${classicInsert(ctx)}${contextualProduct(ctx)}\n\n### 一个可以直接照做的7天版本\n\n第1-2天只记录，不评价；第3-4天找重复场景；第5天设计一个替代动作；第6天测试；第7天只回答三个问题：什么最容易做到、什么最容易反复、下周只保留什么。\n\n这套方法的重点不是让人“感觉自己很自律”，而是减少下一次在疲惫、聚餐或临时诱因下做决定的难度。复盘时建议保留一条具体证据，例如“周三22:40加班后点了外卖”，而不是写“这一周意志力差”。前者能帮助你提前准备替代动作，后者只会增加情绪压力。\n\n还需要补充的是，健康内容的可信度不来自语气多肯定，而来自边界是否完整：一般原则有没有适用条件，数字能不能追到原文，产品有没有回到最终标签，古籍有没有交代版本。只要其中一个环节说不清，就应该暂缓发布，而不是用更强烈的标题掩盖证据不足。\n\n${ctx.purpose.cta}\n\n利益与边界说明：本文由品牌内容工具辅助生成，发布前需人工核验；不构成诊疗建议，不使用古籍或指南为具体食品证明功效。\n\n${sourceLine}`;
+  const body = pairedSections(blocks, headings);
+  return `${titles[0]}\n\n先说结论：${ctx.topic.label}不适合用“一次全部改掉”作为长期策略。更现实的做法是识别高频场景、记录一周，再选择一个成本最低的动作测试。公开科普只能提供一般原则；涉及症状、检查或用药，应该由医生判断。\n\n${body}${classicInsert(ctx)}${contextualProduct(ctx)}\n\n一个可以直接照做的7天版本\n\n第1-2天只记录，不评价；第3-4天找重复场景；第5天设计一个替代动作；第6天测试；第7天只回答三个问题：什么最容易做到、什么最容易反复、下周只保留什么。\n\n这套方法的重点不是让人“感觉自己很自律”，而是减少下一次在疲惫、聚餐或临时诱因下做决定的难度。复盘时建议保留一条具体证据，例如“周三22:40加班后点了外卖”，而不是写“这一周意志力差”。前者能帮助你提前准备替代动作，后者只会增加情绪压力。\n\n还需要补充的是，健康内容的可信度不来自语气多肯定，而来自边界是否完整：一般原则有没有适用条件，数字能不能追到原文，产品有没有回到最终标签，古籍有没有交代版本。只要其中一个环节说不清，就应该暂缓发布，而不是用更强烈的标题掩盖证据不足。\n\n${ctx.purpose.cta}\n\n本文不构成诊疗建议，也不使用古籍或指南为具体食品证明功效。\n\n${sourceLine}`;
 }
 
 function weiboDraft(ctx, titles, blocks, sourceLine) {
@@ -444,6 +435,7 @@ function makeDraft(ctx) {
   const sources = referencesFor(ctx);
   ctx.sources = sources;
   const sourceLine = sourceText(sources);
+  ctx.selectedTitle = titles[0];
   const generators = { video: videoDraft, xhs: xhsDraft, wechat: wechatDraft, zhihu: zhihuDraft, weibo: weiboDraft };
   return generators[ctx.platformKey](ctx, titles, blocks, sourceLine);
 }
@@ -514,24 +506,27 @@ function renderResult(ctx, draft, duplicateRetries) {
       <span class="metric">版本 ${version}</span>
       <span class="metric">查重重试 ${duplicateRetries} 次</span>
     </div>
-    <section class="draft-card">
-      <div class="draft-title"><div><span class="badge">内容策略</span><h3>${escapeHtml(ctx.product.name)} · ${escapeHtml(ctx.platform.label)} · ${escapeHtml(ctx.topic.label)}</h3></div>${copyButton(strategy)}</div>
-      <pre class="draft-body">${escapeHtml(strategy)}</pre>
-    </section>
-    <section class="draft-card">
-      <div class="draft-title"><div><span class="badge gold">完整成稿</span><h3>${escapeHtml(ctx.platform.deliverable)}｜${escapeHtml(ctx.length.targets[ctx.platformKey])}</h3></div>${copyButton(draft)}</div>
+    <section class="draft-card publish-card">
+      <div class="draft-title"><div><span class="badge gold">复制后即可使用</span><h3>${escapeHtml(ctx.platform.label)}可直接发布成稿｜${escapeHtml(ctx.length.targets[ctx.platformKey])}</h3></div>${copyButton(draft)}</div>
       <pre class="draft-body">${escapeHtml(draft)}</pre>
     </section>
-    <section class="draft-card">
-      <div class="draft-title"><div><span class="badge">目的与方法逻辑</span><h3>这条内容为什么这样写</h3></div>${copyButton(logic)}</div>
-      <pre class="draft-body">${escapeHtml(logic)}</pre>
-    </section>
-    <section class="${auditClass}">
-      <b>内容风险检查：待人工审核</b>
-      <span>${escapeHtml(auditText)}</span>
-      <span>产品资料中的“降酸、溶晶、补肾、壮阳、见效、替代或减少药物”等说法已从可用事实库隔离。</span>
-      <span>发布时还要核对最终实物标签、价格、食用方式、不适宜人群、古籍卷次、指南原文和该平台最新规则。</span>
-    </section>`;
+    <details class="review-details">
+      <summary>展开查看内部策划与审核信息（不属于发布正文）</summary>
+      <section class="draft-card">
+        <div class="draft-title"><div><span class="badge">内部内容策略</span><h3>${escapeHtml(ctx.product.name)} · ${escapeHtml(ctx.platform.label)} · ${escapeHtml(ctx.topic.label)}</h3></div>${copyButton(strategy)}</div>
+        <pre class="draft-body">${escapeHtml(strategy)}</pre>
+      </section>
+      <section class="draft-card">
+        <div class="draft-title"><div><span class="badge">内部方法复盘</span><h3>为什么这样写</h3></div>${copyButton(logic)}</div>
+        <pre class="draft-body">${escapeHtml(logic)}</pre>
+      </section>
+      <section class="${auditClass}">
+        <b>内容风险检查：待人工审核</b>
+        <span>${escapeHtml(auditText)}</span>
+        <span>产品资料中的“降酸、溶晶、补肾、壮阳、见效、替代或减少药物”等说法已从可用事实库隔离。</span>
+        <span>发布时还要核对最终实物标签、价格、食用方式、不适宜人群、古籍卷次、指南原文和该平台最新规则。</span>
+      </section>
+    </details>`;
   document.querySelectorAll('[data-copy]').forEach((button) => {
     button.addEventListener('click', async () => {
       await navigator.clipboard.writeText(decodeURIComponent(button.dataset.copy));
@@ -586,7 +581,7 @@ function setPage(id) {
 
 function initialize() {
   seedControls();
-  $('#result').innerHTML = '<div class="empty-state"><div><b>先选策略，再生成完整成稿</b>建议从“中篇”开始查看平台差异；生成结果会包含正文、策略解释、来源和风险检查。</div></div>';
+  $('#result').innerHTML = '<div class="empty-state"><div><b>选择条件，生成可直接发布的完整正文</b>生成后第一屏只显示成稿；内部策略、来源说明和风险检查会收在下方，不再混进文章。</div></div>';
   renderLibrary();
   $('#generate').addEventListener('click', generate);
   $('#knowledge-search').addEventListener('input', renderLibrary);
