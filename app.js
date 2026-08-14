@@ -370,17 +370,28 @@ function titleSet(ctx) {
 
 function assembleBody(ctx) {
   const requested = LENGTHS[ctx.lengthKey].minBlocks;
-  const topicBlocks = shuffled(CONTENT_BLOCKS[ctx.topicKey], ctx.random);
+  const topicBlocks = [...CONTENT_BLOCKS[ctx.topicKey]];
   const extra = shuffled(EXTRA_BLOCKS, ctx.random);
-  const blocks = [];
-  blocks.push(pick(SCENES, ctx.random));
-  blocks.push(...topicBlocks);
-  blocks.push(...extra);
+  const scene = ctx.brief
+    ? `以“${ctx.brief}”为例，真正值得记录的不是一句“今天没管住”，而是事情发生的时间、同行的人、当时的选择，以及下一次最容易提前准备的替代动作。`
+    : pick(ctx.product.scenes || SCENES, ctx.random);
+  const anglePrefixes = {
+    myth: ['先拆误区：', '第二个误区：', '第三个误区：', '更稳妥的做法：'],
+    scene: ['镜头拉回现场：', '当时最容易忽略的是：', '换一个动作会怎样：', '离开场景后这样复盘：'],
+    checklist: ['清单第1项：', '清单第2项：', '清单第3项：', '清单第4项：'],
+    challenge: ['第1—2天：', '第3—4天：', '第5—6天：', '第7天：'],
+    ancient: ['先看古人的观察方式：', '再看今天的生活场景：', '古今不能直接画等号：', '能留下的是这一步：'],
+    ingredient: ['先确认食品类别：', '再查看配料与规格：', '然后核对适用边界：', '最后识别宣传越界：'],
+    story: ['故事从这个细节开始：', '转折发生在这里：', '他没有一次全部改变：', '一周后真正留下的是：'],
+    qna: ['问题一：为什么总是反复？', '问题二：先改哪一步？', '问题三：怎样判断能否坚持？', '问题四：什么时候该咨询医生？']
+  };
+  const prefixes = anglePrefixes[ctx.angleKey] || anglePrefixes.scene;
+  const framed = topicBlocks.map((block, index) => `${prefixes[index]}${block}`);
+  const blocks = [scene, ...framed, ...extra];
   const selected = blocks.slice(0, Math.min(blocks.length, requested + 1));
   if (ctx.platformKey === 'wechat' || ctx.platformKey === 'zhihu') {
     selected.push(...shuffled(LONGFORM_BLOCKS, ctx.random).slice(0, ctx.lengthKey === 'long' ? 7 : ctx.lengthKey === 'medium' ? 3 : 0));
   }
-  if (ctx.brief) selected.splice(1, 0, `这次把场景落到“${ctx.brief}”。不要急着给这个场景贴好坏标签，先写清楚当时发生了什么、谁在场、自己做了什么选择，以及下一次最容易替换的一步。`);
   return selected;
 }
 
@@ -579,11 +590,196 @@ function setPage(id) {
   $('#page-title').textContent = { studio: 'AI 文案设计台', library: '证据知识库', workflow: '发布工作流' }[id];
 }
 
+const LENGTH_BOUNDS_V3 = {
+  short: { video: [260, 440], xhs: [600, 800], wechat: [800, 1100], zhihu: [900, 1200], weibo: [220, 350] },
+  medium: { video: [500, 760], xhs: [1000, 1400], wechat: [1500, 2000], zhihu: [1500, 2000], weibo: [500, 800] },
+  long: { video: [900, 1350], xhs: [1600, 2200], wechat: [2300, 3000], zhihu: [2300, 3000], weibo: [900, 1300] }
+};
+
+const RISK_RULES_V3 = [
+  ['疾病治疗或指标功效', /治疗|治愈|根治|稳定降酸|降低尿酸|尿酸降到|溶晶|消除痛风石|预防复发/],
+  ['药物替代或停药暗示', /替代药物|减少药量|停药|不用吃药|无须就医/],
+  ['性功能暗示', /壮阳|补肾|持久|提高性能力|征服女人/],
+  ['绝对化效果承诺', /当天见效|百分之百|100%有效|绝无副作用|适合所有人|无效退款/],
+  ['诊断或恐吓表达', /隐形杀手|一定会得|你已经是[^，。；]*患者|再不[^，。；]*就会/],
+  ['效果见证或检测值对比', /(?:服用|吃了|用了)[^，。；]{0,12}(?:天|周|月)[^，。；]{0,12}(?:见效|有效|改善)|(?:尿酸|指标)[^，。；]{0,8}(?:从|由)\d+[^，。；]{0,8}(?:降到|变成)\d+/]
+];
+
+function riskAuditV3(text, ctx) {
+  const scanned = text
+    .replace(/不构成(?:个体)?诊疗建议/g, '')
+    .replace(/不构成诊断或治疗建议/g, '')
+    .replace(/不能代替药物或诊疗/g, '')
+    .replace(/不能替代诊疗/g, '')
+    .replace(/不用于诊断、治疗或预防疾病/g, '')
+    .replace(/不能代替诊断、治疗或药物/g, '')
+    .replace(/不指导停药/g, '')
+    .replace(/不得使用[“”][^“”]+[“”]等表述/g, '')
+    .replace(/不要因为[^。；]+自行停药、换药/g, '');
+  const critical = RISK_RULES_V3.filter(([, pattern]) => pattern.test(scanned)).map(([label]) => label);
+  const warnings = [];
+  if (ctx && scanned.split(/\n{2,}/).some((paragraph) => paragraph.includes(ctx.product.name) && /痛风|高尿酸|疾病|症状|用药/.test(paragraph))) warnings.push('同段出现产品名与疾病/用药词，请确认没有建立功效关联');
+  return { critical: [...new Set(critical)], warnings: [...new Set(warnings)] };
+}
+
+function fitLengthV3(body, ctx) {
+  const [min, max] = LENGTH_BOUNDS_V3[ctx.lengthKey][ctx.platformKey];
+  const additions = shuffled([
+    ...LONGFORM_BLOCKS, ...EXTRA_BLOCKS,
+    `对${ctx.audience.label}来说，重点不是把一天写成满分答案，而是找到最常重复的触发点。${ctx.audience.life}，所以记录必须足够简单：什么时候、在什么场景、做了什么选择、下一次准备换成什么。只要这四项能连续留下来，复盘就有了依据。`,
+    '执行时可以把门槛设得低一些：不追求每次都做对，只追求每次都留下事实。事实越具体，下一步越容易设计；评价越抽象，越容易把问题误解成“我不够自律”。',
+    '一般生活方式建议不等于个人诊疗方案。出现持续不适、急性症状、检查异常，或正在使用药物时，应把网络内容停在参考层面，及时咨询医生。',
+    '如果内容里出现食品，核对顺序应当固定：先看食品类别，再看配料、规格、食用方法和不适宜人群，最后才看品牌怎样介绍。包装正面的故事可以帮助理解，但不能替代背面的标签事实。',
+    `把这条内容真正落地时，可以在发布后的评论区只追问一个问题：“你最容易在哪个时间点遇到同样情况？”答案会帮助团队判断，下一条内容应该继续拆${ctx.topic.label}，还是转向更具体的场景。不要同时追问过多个人健康信息，也不要在公开评论区收集检查报告。`,
+    '复盘一条内容时，不只看点赞。收藏说明用户想以后再用，评论说明场景引起了表达欲，完整阅读或完播说明开头与正文衔接有效。团队应记录标题、角度、篇幅和互动动作，下一轮只改一个变量，才能知道究竟是哪一步起作用。',
+    '古籍、指南和产品标签承担的是三种不同任务：古籍提供文化背景，指南支持一般生活方式原则，标签证明产品客观信息。三者可以在同一篇文章中出现，但不能相互代替，更不能用文化故事跨过现代证据和食品宣传边界。'
+  ], ctx.random);
+  const paragraphs = body.split(/\n{2,}/).map((item) => item.trim()).filter(Boolean);
+  let addIndex = 0;
+  while (charCount(paragraphs.join('\n\n')) < min && addIndex < additions.length) {
+    const candidate = additions[addIndex++];
+    if (!paragraphs.includes(candidate)) paragraphs.splice(Math.max(2, paragraphs.length - 3), 0, candidate);
+  }
+  while (charCount(paragraphs.join('\n\n')) > max && paragraphs.length > 6) {
+    const removable = paragraphs.map((value, index) => ({ value, index }))
+      .filter(({ value, index }) => index > 1 && index < paragraphs.length - 3 && !/第1—2天|问题一|清单第1项|先拆误区/.test(value))
+      .sort((a, b) => b.value.length - a.value.length)[0];
+    if (!removable) break;
+    paragraphs.splice(removable.index, 1);
+  }
+  let fitted = paragraphs.join('\n\n');
+  if (charCount(fitted) > max) {
+    const raw = fitted.replace(/\s+/g, '');
+    const cutAt = Math.max(raw.lastIndexOf('。', max - 80), raw.lastIndexOf('！', max - 80), raw.lastIndexOf('？', max - 80));
+    if (cutAt > min) fitted = `${raw.slice(0, cutAt + 1)}\n\n提示：本文为一般科普，不替代诊疗；食品信息以最终实物标签为准。`;
+  }
+  return fitted;
+}
+
+function splitDraftV3(ctx, draft) {
+  const lines = draft.trim().split('\n');
+  const title = lines.shift().trim();
+  let body = lines.join('\n').trim().replace(/\n*参考资料：[\s\S]*$/m, '').replace(/\n*来源：[^\n]*。?\s*$/m, '').trim();
+  body = fitLengthV3(body, ctx);
+  return { title, body, full: `${title}\n\n${body}` };
+}
+
+function historyV3() { try { return JSON.parse(localStorage.getItem('zhiyang-content-history-v3') || '[]'); } catch { return []; } }
+function setHistoryV3(items) { localStorage.setItem('zhiyang-content-history-v3', JSON.stringify(items.slice(0, 30))); renderHistoryV3(); }
+
+function similarityV3(a, b) {
+  const chunks = (value) => new Set((value || '').replace(/\s+/g, '').match(/.{1,12}/g) || []);
+  const left = chunks(a); const right = chunks(b); if (!left.size || !right.size) return 0;
+  let same = 0; left.forEach((item) => { if (right.has(item)) same += 1; }); return same / Math.min(left.size, right.size);
+}
+
+function editorValuesV3() {
+  const title = $('#draft-title-editor')?.value.trim() || '';
+  const body = $('#draft-body-editor')?.value.trim() || '';
+  return { title, body, full: `${title}\n\n${body}` };
+}
+
+async function copyTextV3(value, button) {
+  const original = button.textContent;
+  try {
+    if (navigator.clipboard && window.isSecureContext) await navigator.clipboard.writeText(value);
+    else {
+      const helper = document.createElement('textarea'); helper.value = value; helper.style.position = 'fixed'; helper.style.opacity = '0';
+      document.body.appendChild(helper); helper.select();
+      if (!document.execCommand('copy')) throw new Error('copy failed'); helper.remove();
+    }
+    button.textContent = '已复制'; $('#copy-feedback').textContent = '已复制到剪贴板。正式发布前请完成三项审核。';
+  } catch { $('#copy-feedback').textContent = '自动复制失败，请在编辑框内全选后手动复制。'; }
+  setTimeout(() => { button.textContent = original; }, 1200);
+}
+
+function saveVersionV3(ctx) {
+  const value = editorValuesV3(); if (!value.body) return;
+  const item = {
+    id: `${Date.now()}-${hash(value.full)}`, at: new Date().toISOString(), platform: ctx.platform.label, topic: ctx.topic.label,
+    title: value.title, body: value.body,
+    context: { product: ctx.productKey, platform: ctx.platformKey, audience: ctx.audienceKey, purpose: ctx.purposeKey, stage: ctx.stageKey, length: ctx.lengthKey, topic: ctx.topicKey, angle: ctx.angleKey }
+  };
+  setHistoryV3([item, ...historyV3().filter((old) => old.id !== item.id)]); return item;
+}
+
+function downloadV3(value, ctx) {
+  const references = ctx.sources.map((source, index) => `${index + 1}. ${source.title}\n${source.url}`).join('\n');
+  const content = `${value.full}\n\n——审核记录——\n操作者已勾选确认产品标签、引用和平台规则。\n导出时间：${new Date().toLocaleString('zh-CN')}\n\n引用来源：\n${references}`;
+  const blob = new Blob([content], { type: 'text/plain;charset=utf-8' }); const url = URL.createObjectURL(blob);
+  const link = document.createElement('a'); link.href = url; link.download = `知养-${ctx.platform.label}-${Date.now()}.txt`; link.click(); URL.revokeObjectURL(url);
+}
+
+function bindEditorV3(ctx) {
+  const checks = [...document.querySelectorAll('[data-review]')];
+  const update = () => {
+    const value = editorValuesV3(); const [min, max] = LENGTH_BOUNDS_V3[ctx.lengthKey][ctx.platformKey]; const count = charCount(value.body); const audit = riskAuditV3(value.full, ctx);
+    $('#live-count').textContent = `正文 ${count} 字；目标 ${min}—${max} 字。${audit.critical.length ? ` 阻断项：${audit.critical.join('、')}` : ''}`;
+    $('#live-count').classList.toggle('length-warning', count < min || count > max || audit.critical.length > 0);
+    document.querySelectorAll('[data-action="copy-body"],[data-action="copy-full"]').forEach((item) => { item.disabled = audit.critical.length > 0; });
+    const approved = checks.every((item) => item.checked) && !audit.critical.length && count >= min && count <= max;
+    document.querySelector('[data-action="download"]').disabled = !approved;
+    $('#review-status').textContent = approved ? '审核项已确认' : '待审核'; $('#review-status').classList.toggle('ready', approved);
+  };
+  $('#draft-body-editor').addEventListener('input', update); $('#draft-title-editor').addEventListener('input', update); checks.forEach((item) => item.addEventListener('change', update));
+  document.querySelectorAll('.editor-toolbar button').forEach((button) => button.addEventListener('click', () => {
+    const value = editorValuesV3(); const action = button.dataset.action;
+    if (action === 'copy-title') copyTextV3(value.title, button);
+    if (action === 'copy-body') copyTextV3(value.body, button);
+    if (action === 'copy-full') copyTextV3(value.full, button);
+    if (action === 'save') { saveVersionV3(ctx); const label = button.textContent; button.textContent = '已保存'; setTimeout(() => { button.textContent = label; }, 1000); }
+    if (action === 'download') downloadV3(value, ctx);
+  })); update();
+}
+
+function renderResultV3(ctx, draft, retries) {
+  const strategy = strategyText(ctx); const logic = logicText(ctx, draft.full); const audit = riskAuditV3(draft.full, ctx); const count = charCount(draft.body); const version = hash(draft.full);
+  const [min, max] = LENGTH_BOUNDS_V3[ctx.lengthKey][ctx.platformKey]; const lengthOk = count >= min && count <= max;
+  const auditClass = audit.critical.length ? 'audit danger' : audit.warnings.length ? 'audit warning' : 'audit';
+  const auditText = audit.critical.length ? `发现阻断发布的高风险表达：${audit.critical.join('、')}。请修改后再复制正文或导出。` : audit.warnings.length ? audit.warnings.join('；') : '未发现内置规则可识别的高风险表达；这不等于通过法律审查，仍须人工复核。';
+  $('#result-status').textContent = `已生成 · 待人工审核 · ${new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })}`;
+  $('#result').innerHTML = `<div class="metrics"><span class="metric ${lengthOk ? '' : 'length-warning'}">正文 ${count} 字</span><span class="metric">目标 ${ctx.length.targets[ctx.platformKey]}</span><span class="metric">来源 ${ctx.sources.length} 项</span><span class="metric">版本 ${version}</span><span class="metric">查重重试 ${retries} 次</span></div>
+  <section class="draft-card publish-card"><div class="draft-title"><div><span class="badge gold">可编辑完整成稿</span><span id="review-status" class="status-chip">待审核</span><h3>${escapeHtml(ctx.platform.label)}完整正文｜${escapeHtml(ctx.length.targets[ctx.platformKey])}</h3></div></div>
+  <div class="publish-meta"><span>${escapeHtml(ctx.angle)}</span><span>${escapeHtml(ctx.stage.label)}</span><span>${ctx.stageKey === 'cold' ? '正文不露产品' : '仅使用标签事实'}</span></div>
+  <textarea id="draft-title-editor" class="draft-editor draft-title-editor" aria-label="可编辑标题">${escapeHtml(draft.title)}</textarea><textarea id="draft-body-editor" class="draft-editor draft-body-editor" aria-label="可编辑正文">${escapeHtml(draft.body)}</textarea>
+  <div id="live-count" class="copy-feedback">正文 ${count} 字；目标 ${min}—${max} 字。</div><div class="editor-toolbar"><button type="button" data-action="copy-title">复制标题</button><button type="button" data-action="copy-body" ${audit.critical.length ? 'disabled' : ''}>复制正文（待审）</button><button type="button" data-action="copy-full" ${audit.critical.length ? 'disabled' : ''}>复制标题+正文</button><button type="button" data-action="save">保存新版本</button><button type="button" data-action="download" disabled>导出审核发布版</button></div><div id="copy-feedback" class="copy-feedback"></div></section>
+  <section class="review-gate"><b>发布审核 <span class="status-chip">三项全选后才可导出发布版</span></b><label><input type="checkbox" data-review="facts">我已对照最终实物标签，核对名称、类别、配料、规格、食用方法和不适宜人群。</label><label><input type="checkbox" data-review="sources">我已打开引用链接，核对数字、古籍原文和适用范围。</label><label><input type="checkbox" data-review="platform">我已按当前平台最新规则复核标题、商业标识和导流方式。</label></section>
+  <section class="draft-card"><div class="draft-title"><div><span class="badge">引用核对区</span><h3>引用不混入正文，审核时逐条打开</h3></div></div><div class="reference-list">${ctx.sources.map((source, index) => `<a href="${source.url}" target="_blank" rel="noopener">${index + 1}. ${escapeHtml(source.title)} ↗</a>`).join('')}</div></section>
+  <details class="review-details"><summary>展开内部策划与审核信息（不属于发布正文）</summary><section class="draft-card"><div class="draft-title"><div><span class="badge">内部内容策略</span><h3>${escapeHtml(ctx.product.name)} · ${escapeHtml(ctx.platform.label)} · ${escapeHtml(ctx.topic.label)}</h3></div></div><pre class="draft-body">${escapeHtml(strategy)}</pre></section><section class="draft-card"><div class="draft-title"><div><span class="badge">内部方法复盘</span><h3>目的、方法与逻辑</h3></div></div><pre class="draft-body">${escapeHtml(logic)}</pre></section><section class="${auditClass}"><b>内容风险检查</b><span>${escapeHtml(auditText)}</span><span>产品资料中的“降酸、溶晶、补肾、壮阳、见效、替代或减少药物”等说法已隔离；最终仍要核对实物标签和平台规则。</span></section></details>`;
+  bindEditorV3(ctx);
+}
+
+function generateV3() {
+  const history = historyV3(); let ctx; let draft; let tries = 0;
+  do { ctx = buildContext(createSeed() + tries * 97); const generated = makeDraft(ctx); draft = splitDraftV3(ctx, generated); tries += 1; }
+  while (history.some((item) => similarityV3(item.body, draft.body) > 0.9) && tries < 16);
+  renderResultV3(ctx, draft, tries - 1); saveVersionV3(ctx);
+}
+
+function renderHistoryV3() {
+  const history = historyV3();
+  $('#history').innerHTML = history.length ? `<div class="history-list">${history.map((item, index) => `<article class="history-item"><div><b>${escapeHtml(item.title || '未命名草稿')}</b><small>${escapeHtml(item.platform || '')} · ${escapeHtml(item.topic || '')} · ${new Date(item.at).toLocaleString('zh-CN')}</small></div><div class="history-actions"><button type="button" data-restore="${index}">恢复</button><button type="button" data-delete="${index}">删除</button></div></article>`).join('')}</div>` : '<div class="empty-state"><div><b>还没有本机草稿</b>每次生成会自动保存，可随时恢复继续编辑。</div></div>';
+  document.querySelectorAll('[data-restore]').forEach((button) => button.addEventListener('click', () => { const item = historyV3()[Number(button.dataset.restore)]; if (!item) return; Object.entries(item.context || {}).forEach(([id, value]) => { if ($(`#${id}`)) $(`#${id}`).value = value; }); const ctx = buildContext(createSeed()); ctx.sources = referencesFor(ctx); renderResultV3(ctx, { title: item.title, body: item.body, full: `${item.title}\n\n${item.body}` }, 0); updateStageNoteV3(); window.scrollTo({ top: 0, behavior: 'smooth' }); }));
+  document.querySelectorAll('[data-delete]').forEach((button) => button.addEventListener('click', () => { const list = historyV3(); list.splice(Number(button.dataset.delete), 1); setHistoryV3(list); }));
+}
+
+function updateStageNoteV3() {
+  const stageKey = $('#stage').value; const product = PRODUCTS[$('#product').value]; const notes = {
+    cold: `冷启动阶段：已选“${product.name}”只用于决定选题方向，正文不露产品、不导购。`, warm: `预热阶段：可弱露“${product.name}”作为内容服务者，不写产品功效。`,
+    convert: '转化阶段：只允许使用已对照实物标签的产品事实，生成后必须完成三项审核。', retain: '留存阶段：以记录、问卷和人工答疑为主，不用高频促销制造焦虑。'
+  }; $('#stage-note').textContent = notes[stageKey];
+}
+
 function initialize() {
   seedControls();
-  $('#result').innerHTML = '<div class="empty-state"><div><b>选择条件，生成可直接发布的完整正文</b>生成后第一屏只显示成稿；内部策略、来源说明和风险检查会收在下方，不再混进文章。</div></div>';
+  $('#result').innerHTML = '<div class="empty-state"><div><b>选择条件，生成可编辑的完整正文</b>生成后可直接修改标题与正文；完成标签、引用和平台规则审核后，才能导出发布版。</div></div>';
   renderLibrary();
-  $('#generate').addEventListener('click', generate);
+  renderHistoryV3();
+  updateStageNoteV3();
+  $('#generate').addEventListener('click', generateV3);
+  $('#stage').addEventListener('change', updateStageNoteV3);
+  $('#product').addEventListener('change', updateStageNoteV3);
+  $('#clear-history').addEventListener('click', () => { if (window.confirm('只清空当前浏览器中的草稿记录，确定继续吗？')) setHistoryV3([]); });
   $('#knowledge-search').addEventListener('input', renderLibrary);
   $('#knowledge-filter').addEventListener('change', renderLibrary);
   document.querySelectorAll('.nav').forEach((button) => button.addEventListener('click', () => setPage(button.dataset.page)));
